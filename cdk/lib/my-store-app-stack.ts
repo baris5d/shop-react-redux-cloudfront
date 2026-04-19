@@ -3,11 +3,16 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as path from "path";
 import { Construct } from "constructs";
 
 export class MyStoreAppStack extends cdk.Stack {
   public readonly bucket: s3.Bucket;
   public readonly distribution: cloudfront.Distribution;
+  public readonly api: apigateway.RestApi;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -104,6 +109,78 @@ export class MyStoreAppStack extends cdk.Stack {
       value: `https://${this.distribution.distributionDomainName}`,
       description: "Website URL",
       exportName: "MyStoreAppWebsiteURL",
+    });
+
+    // ========== API Gateway + Lambda Functions ==========
+
+    // Create API Gateway
+    this.api = new apigateway.RestApi(this, "ProductServiceAPI", {
+      restApiName: "Product Service API",
+      description: "API for product management",
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: ["Content-Type", "Authorization"],
+      },
+    });
+
+    // Lambda for getProductsList
+    const getProductsListLambda = new lambdaNodejs.NodejsFunction(
+      this,
+      "GetProductsListFunction",
+      {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: path.join(__dirname, "lambdas/get-products-list.ts"),
+        handler: "handler",
+        bundling: {
+          minify: false,
+          target: "es2020",
+        },
+      },
+    );
+
+    // Lambda for getProductsById
+    const getProductsByIdLambda = new lambdaNodejs.NodejsFunction(
+      this,
+      "GetProductsByIdFunction",
+      {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: path.join(__dirname, "lambdas/get-products-by-id.ts"),
+        handler: "handler",
+        bundling: {
+          minify: false,
+          target: "es2020",
+        },
+      },
+    );
+
+    // API resources and methods
+    const productsResource = this.api.root.addResource("products");
+
+    // GET /products
+    productsResource.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getProductsListLambda),
+    );
+
+    // GET /products/{productId}
+    const productByIdResource = productsResource.addResource("{productId}");
+    productByIdResource.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getProductsByIdLambda),
+    );
+
+    // API Output
+    new cdk.CfnOutput(this, "APIEndpoint", {
+      value: this.api.url,
+      description: "API Gateway Endpoint URL",
+      exportName: "ProductServiceAPIEndpoint",
+    });
+
+    new cdk.CfnOutput(this, "ProductsEndpoint", {
+      value: `${this.api.url}products`,
+      description: "Products List Endpoint",
+      exportName: "ProductsListEndpoint",
     });
   }
 }

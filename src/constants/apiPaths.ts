@@ -1,9 +1,9 @@
 const API_PATHS = {
-  product: "https://.execute-api.eu-west-1.amazonaws.com/dev",
-  order: "https://.execute-api.eu-west-1.amazonaws.com/dev",
-  import: "https://.execute-api.eu-west-1.amazonaws.com/dev",
-  bff: "https://.execute-api.eu-west-1.amazonaws.com/dev",
-  cart: "https://.execute-api.eu-west-1.amazonaws.com/dev",
+  product: import.meta.env.VITE_API_ENDPOINT || "https://localhost:3000/api",
+  order: import.meta.env.VITE_API_ENDPOINT || "https://localhost:3000/api",
+  import: import.meta.env.VITE_API_ENDPOINT || "https://localhost:3000/api",
+  bff: import.meta.env.VITE_API_ENDPOINT || "https://localhost:3000/api",
+  cart: import.meta.env.VITE_API_ENDPOINT || "https://localhost:3000/api",
 };
 
 export default API_PATHS;
