@@ -1,0 +1,19 @@
+# CDK specific
+node_modules/
+dist/
+*.js
+!jest.config.js
+*.d.ts
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# Dependencies
+package-lock.json
+
+# IDE
+.idea/
+*.swp
+*.swo
+.DS_Store

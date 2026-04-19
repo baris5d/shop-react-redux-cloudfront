@@ -1,4 +1,4 @@
-service: my-store-app
+service: epm-s3-frontend
 
 frameworkVersion: "3"
 
@@ -19,7 +19,7 @@ plugins:
 
 custom:
   client:
-    bucketName: my-store-app
+    bucketName: epm-s3-frontend
     distributionFolder: dist
   s3BucketName: ${self:custom.client.bucketName}
 

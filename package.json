@@ -1,5 +1,5 @@
 {
-  "name": "my-store-app",
+  "name": "epm-s3-frontend",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -11,6 +11,16 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint --ignore-path .gitignore --fix src",
     "prettier": "prettier src --write",
+    "cdk:install": "cd cdk && npm install",
+    "cdk:bootstrap": "cd cdk && npx cdk bootstrap",
+    "cdk:synth": "cd cdk && npx cdk synth",
+    "cdk:diff": "cd cdk && npx cdk diff",
+    "cdk:deploy": "cd cdk && npx cdk deploy --require-approval never",
+    "cdk:destroy": "cd cdk && npx cdk destroy --force",
+    "upload": "bash scripts/upload.sh",
+    "invalidate": "bash scripts/invalidate-cache.sh",
+    "deploy": "bash scripts/deploy.sh",
+    "deploy:full": "npm run cdk:deploy && npm run deploy",
     "client:deploy": "sls client deploy --no-config-change --no-policy-change --no-cors-change",
     "client:deploy:nc": "npm run client:deploy -- --no-confirm",
     "client:build:deploy": "npm run build && npm run client:deploy",
