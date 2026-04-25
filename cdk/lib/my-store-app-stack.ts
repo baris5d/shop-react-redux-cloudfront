@@ -6,6 +6,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as path from "path";
 import { Construct } from "constructs";
 
@@ -111,6 +112,28 @@ export class MyStoreAppStack extends cdk.Stack {
       exportName: "MyStoreAppWebsiteURL",
     });
 
+    // ========== DynamoDB (products + stock) ==========
+
+    const productsTable = new dynamodb.Table(this, "ProductsTable", {
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const stockTable = new dynamodb.Table(this, "StockTable", {
+      partitionKey: {
+        name: "product_id",
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const dynamoEnv = {
+      PRODUCTS_TABLE_NAME: productsTable.tableName,
+      STOCK_TABLE_NAME: stockTable.tableName,
+    };
+
     // ========== API Gateway + Lambda Functions ==========
 
     // Create API Gateway
@@ -132,6 +155,7 @@ export class MyStoreAppStack extends cdk.Stack {
         runtime: lambda.Runtime.NODEJS_18_X,
         entry: path.join(__dirname, "lambdas/get-products-list.ts"),
         handler: "handler",
+        environment: dynamoEnv,
         bundling: {
           minify: false,
           target: "es2020",
@@ -147,12 +171,35 @@ export class MyStoreAppStack extends cdk.Stack {
         runtime: lambda.Runtime.NODEJS_18_X,
         entry: path.join(__dirname, "lambdas/get-products-by-id.ts"),
         handler: "handler",
+        environment: dynamoEnv,
         bundling: {
           minify: false,
           target: "es2020",
         },
       },
     );
+
+    const createProductLambda = new lambdaNodejs.NodejsFunction(
+      this,
+      "CreateProductFunction",
+      {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: path.join(__dirname, "lambdas/create-product.ts"),
+        handler: "handler",
+        environment: dynamoEnv,
+        bundling: {
+          minify: false,
+          target: "es2020",
+        },
+      },
+    );
+
+    productsTable.grantReadData(getProductsListLambda);
+    stockTable.grantReadData(getProductsListLambda);
+    productsTable.grantReadData(getProductsByIdLambda);
+    stockTable.grantReadData(getProductsByIdLambda);
+    productsTable.grantWriteData(createProductLambda);
+    stockTable.grantWriteData(createProductLambda);
 
     // API resources and methods
     const productsResource = this.api.root.addResource("products");
@@ -161,6 +208,12 @@ export class MyStoreAppStack extends cdk.Stack {
     productsResource.addMethod(
       "GET",
       new apigateway.LambdaIntegration(getProductsListLambda),
+    );
+
+    // POST /products
+    productsResource.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createProductLambda),
     );
 
     // GET /products/{productId}
@@ -181,6 +234,16 @@ export class MyStoreAppStack extends cdk.Stack {
       value: `${this.api.url}products`,
       description: "Products List Endpoint",
       exportName: "ProductsListEndpoint",
+    });
+
+    new cdk.CfnOutput(this, "ProductsTableName", {
+      value: productsTable.tableName,
+      description: "DynamoDB products table (for seed script)",
+    });
+
+    new cdk.CfnOutput(this, "StockTableName", {
+      value: stockTable.tableName,
+      description: "DynamoDB stock table (for seed script)",
     });
   }
 }
