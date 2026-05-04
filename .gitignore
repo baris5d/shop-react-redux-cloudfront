@@ -24,3 +24,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.history
+
+# Generated CDK output
+cdk/cdk.out/
+
+# Local manual upload sample
+products.csv

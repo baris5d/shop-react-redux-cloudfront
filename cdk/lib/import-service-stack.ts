@@ -40,8 +40,8 @@ export class ImportServiceStack extends cdk.Stack {
       "ImportProductsFileFunction",
       {
         runtime: lambda.Runtime.NODEJS_18_X,
-        entry: path.join(__dirname, "lambdas/import-products-file.ts"),
-        handler: "handler",
+        entry: path.join(__dirname, "lambdas/importProductsFile.ts"),
+        handler: "importProductsFile",
         environment: lambdaEnvironment,
         bundling: {
           minify: false,
@@ -55,8 +55,8 @@ export class ImportServiceStack extends cdk.Stack {
       "ImportFileParserFunction",
       {
         runtime: lambda.Runtime.NODEJS_18_X,
-        entry: path.join(__dirname, "lambdas/import-file-parser.ts"),
-        handler: "handler",
+        entry: path.join(__dirname, "lambdas/importFileParser.ts"),
+        handler: "importFileParser",
         environment: lambdaEnvironment,
         bundling: {
           minify: false,

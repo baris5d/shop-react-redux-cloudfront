@@ -10,7 +10,7 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as path from "path";
 import { Construct } from "constructs";
 
-export class MyStoreAppStack extends cdk.Stack {
+export class ProductServiceStack extends cdk.Stack {
   public readonly bucket: s3.Bucket;
   public readonly distribution: cloudfront.Distribution;
   public readonly api: apigateway.RestApi;
@@ -19,7 +19,7 @@ export class MyStoreAppStack extends cdk.Stack {
     super(scope, id, props);
 
     // Create S3 bucket for hosting the React app
-    this.bucket = new s3.Bucket(this, "MyStoreAppBucket", {
+    this.bucket = new s3.Bucket(this, "ProductServiceBucket", {
       bucketName: `epm-s3-frontend-${this.account}-${this.region}`,
       removalPolicy: cdk.RemovalPolicy.DESTROY, // Allows bucket deletion with `cdk destroy`
       autoDeleteObjects: true, // Automatically delete objects when bucket is destroyed
@@ -31,9 +31,9 @@ export class MyStoreAppStack extends cdk.Stack {
     // Create Origin Access Identity for CloudFront
     const originAccessIdentity = new cloudfront.OriginAccessIdentity(
       this,
-      "MyStoreAppOAI",
+      "ProductServiceOAI",
       {
-        comment: "OAI for My Store App CloudFront distribution",
+        comment: "OAI for Product Service CloudFront distribution",
       },
     );
 
@@ -53,7 +53,7 @@ export class MyStoreAppStack extends cdk.Stack {
     // Create CloudFront distribution
     this.distribution = new cloudfront.Distribution(
       this,
-      "MyStoreAppDistribution",
+      "ProductServiceDistribution",
       {
         defaultBehavior: {
           origin: new origins.S3Origin(this.bucket, {
@@ -91,25 +91,25 @@ export class MyStoreAppStack extends cdk.Stack {
     new cdk.CfnOutput(this, "BucketName", {
       value: this.bucket.bucketName,
       description: "S3 Bucket Name",
-      exportName: "MyStoreAppBucketName",
+      exportName: "ProductServiceBucketName",
     });
 
     new cdk.CfnOutput(this, "DistributionId", {
       value: this.distribution.distributionId,
       description: "CloudFront Distribution ID",
-      exportName: "MyStoreAppDistributionId",
+      exportName: "ProductServiceDistributionId",
     });
 
     new cdk.CfnOutput(this, "DistributionDomainName", {
       value: this.distribution.distributionDomainName,
       description: "CloudFront Distribution Domain Name",
-      exportName: "MyStoreAppDistributionDomainName",
+      exportName: "ProductServiceDistributionDomainName",
     });
 
     new cdk.CfnOutput(this, "WebsiteURL", {
       value: `https://${this.distribution.distributionDomainName}`,
       description: "Website URL",
-      exportName: "MyStoreAppWebsiteURL",
+      exportName: "ProductServiceWebsiteURL",
     });
 
     // ========== DynamoDB (products + stock) ==========

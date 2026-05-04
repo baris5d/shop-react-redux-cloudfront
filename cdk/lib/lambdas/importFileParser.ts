@@ -58,7 +58,7 @@ async function moveToParsedFolder(bucketName: string, sourceKey: string) {
   );
 }
 
-export const handler: S3Handler = async (event: S3Event) => {
+export const importFileParser: S3Handler = async (event: S3Event) => {
   const bucketName = requireEnv("IMPORT_BUCKET_NAME");
 
   for (const record of event.Records) {

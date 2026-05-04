@@ -1,7 +1,4 @@
-import {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-} from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -22,8 +19,7 @@ function requireEnv(name: string): string {
 
 function getFileName(event: APIGatewayProxyEvent): string | null {
   const rawFileName =
-    event.queryStringParameters?.name ??
-    event.queryStringParameters?.fileName;
+    event.queryStringParameters?.name ?? event.queryStringParameters?.fileName;
   if (!rawFileName) {
     return null;
   }
@@ -34,7 +30,7 @@ function getFileName(event: APIGatewayProxyEvent): string | null {
   return normalizedFileName || null;
 }
 
-export async function handler(
+export async function importProductsFile(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
