@@ -1,4 +1,5 @@
 import React from "react";
+import axios from "axios";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
@@ -9,6 +10,7 @@ type CSVFileImportProps = {
 
 export default function CSVFileImport({ url, title }: CSVFileImportProps) {
   const [file, setFile] = React.useState<File>();
+  const [isUploading, setIsUploading] = React.useState(false);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -23,24 +25,31 @@ export default function CSVFileImport({ url, title }: CSVFileImportProps) {
   };
 
   const uploadFile = async () => {
-    console.log("uploadFile to", url);
+    if (!file) {
+      return;
+    }
 
-    // Get the presigned URL
-    // const response = await axios({
-    //   method: "GET",
-    //   url,
-    //   params: {
-    //     name: encodeURIComponent(file.name),
-    //   },
-    // });
-    // console.log("File to upload: ", file.name);
-    // console.log("Uploading to: ", response.data);
-    // const result = await fetch(response.data, {
-    //   method: "PUT",
-    //   body: file,
-    // });
-    // console.log("Result: ", result);
-    // setFile("");
+    setIsUploading(true);
+
+    try {
+      const response = await axios.get<{ signedUrl: string }>(url, {
+        params: {
+          name: encodeURIComponent(file.name),
+        },
+      });
+
+      await fetch(response.data.signedUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type || "text/csv",
+        },
+        body: file,
+      });
+
+      setFile(undefined);
+    } finally {
+      setIsUploading(false);
+    }
   };
   return (
     <Box>
@@ -48,11 +57,15 @@ export default function CSVFileImport({ url, title }: CSVFileImportProps) {
         {title}
       </Typography>
       {!file ? (
-        <input type="file" onChange={onFileChange} />
+        <input type="file" accept=".csv,text/csv" onChange={onFileChange} />
       ) : (
         <div>
-          <button onClick={removeFile}>Remove file</button>
-          <button onClick={uploadFile}>Upload file</button>
+          <button onClick={removeFile} disabled={isUploading}>
+            Remove file
+          </button>
+          <button onClick={uploadFile} disabled={isUploading}>
+            {isUploading ? "Uploading..." : "Upload file"}
+          </button>
         </div>
       )}
     </Box>
