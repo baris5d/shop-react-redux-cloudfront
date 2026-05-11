@@ -29,6 +29,7 @@ dist-ssr
 
 # Generated CDK output
 cdk/cdk.out/
-
+cdk/cdk.out.import-deploy/
 # Local manual upload sample
 products.csv
+

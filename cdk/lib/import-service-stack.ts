@@ -5,14 +5,19 @@ import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
+import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as path from "path";
 import { Construct } from "constructs";
+
+interface ImportServiceStackProps extends cdk.StackProps {
+  catalogItemsQueue: sqs.IQueue;
+}
 
 export class ImportServiceStack extends cdk.Stack {
   public readonly bucket: s3.Bucket;
   public readonly api: apigateway.RestApi;
 
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: ImportServiceStackProps) {
     super(scope, id, props);
 
     this.bucket = new s3.Bucket(this, "ImportBucket", {
@@ -33,6 +38,7 @@ export class ImportServiceStack extends cdk.Stack {
     const lambdaEnvironment = {
       IMPORT_BUCKET_NAME: this.bucket.bucketName,
       IMPORT_BUCKET_REGION: this.region,
+      CATALOG_ITEMS_QUEUE_URL: props.catalogItemsQueue.queueUrl,
     };
 
     const importProductsFileLambda = new lambdaNodejs.NodejsFunction(
@@ -67,6 +73,7 @@ export class ImportServiceStack extends cdk.Stack {
 
     this.bucket.grantReadWrite(importProductsFileLambda);
     this.bucket.grantReadWrite(importFileParserLambda);
+    props.catalogItemsQueue.grantSendMessages(importFileParserLambda);
 
     importFileParserLambda.addEventSource(
       new lambdaEventSources.S3EventSource(this.bucket, {
