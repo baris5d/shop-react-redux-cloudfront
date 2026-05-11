@@ -7,8 +7,40 @@ import PageProductImport from "~/components/pages/admin/PageProductImport/PagePr
 import PageCart from "~/components/pages/PageCart/PageCart";
 import PageProducts from "~/components/pages/PageProducts/PageProducts";
 import { Typography } from "@mui/material";
+import React from "react";
+import { ensureAuthorizationToken } from "~/utils/auth";
 
 function App() {
+  const [isAuthReady, setIsAuthReady] = React.useState(false);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    ensureAuthorizationToken()
+      .catch(() => {
+        // Keep app usable even if auth bootstrap fails.
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsAuthReady(true);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (!isAuthReady) {
+    return (
+      <MainLayout>
+        <Typography align="center" variant="h6">
+          Preparing session...
+        </Typography>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
       <Routes>
