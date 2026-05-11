@@ -1,5 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
@@ -11,6 +12,7 @@ import { Construct } from "constructs";
 
 interface ImportServiceStackProps extends cdk.StackProps {
   catalogItemsQueue: sqs.IQueue;
+  basicAuthorizerFunction: lambda.IFunction;
 }
 
 export class ImportServiceStack extends cdk.Stack {
@@ -93,9 +95,33 @@ export class ImportServiceStack extends cdk.Stack {
     });
 
     const importResource = this.api.root.addResource("import");
+    const authorizerInvokeRole = new iam.Role(this, "ImportAuthorizerInvokeRole", {
+      assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
+    });
+    authorizerInvokeRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["lambda:InvokeFunction"],
+        resources: [props.basicAuthorizerFunction.functionArn],
+      }),
+    );
+
+    const importTokenAuthorizer = new apigateway.TokenAuthorizer(
+      this,
+      "ImportTokenAuthorizer",
+      {
+        handler: props.basicAuthorizerFunction,
+        assumeRole: authorizerInvokeRole,
+        identitySource: apigateway.IdentitySource.header("Authorization"),
+      },
+    );
+
     importResource.addMethod(
       "GET",
       new apigateway.LambdaIntegration(importProductsFileLambda),
+      {
+        authorizationType: apigateway.AuthorizationType.CUSTOM,
+        authorizer: importTokenAuthorizer,
+      },
     );
 
     new cdk.CfnOutput(this, "ImportBucketName", {

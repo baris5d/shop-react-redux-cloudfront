@@ -26,6 +26,7 @@ dist-ssr
 *.sw?
 
 .history
+.env
 
 # Generated CDK output
 cdk/cdk.out/
