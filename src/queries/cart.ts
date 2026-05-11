@@ -3,13 +3,12 @@ import React from "react";
 import { useQuery, useQueryClient, useMutation } from "react-query";
 import API_PATHS from "~/constants/apiPaths";
 import { CartItem } from "~/models/CartItem";
+import { getBasicAuthHeaders } from "~/utils/auth";
 
 export function useCart() {
   return useQuery<CartItem[], AxiosError>("cart", async () => {
     const res = await axios.get<CartItem[]>(`${API_PATHS.cart}/profile/cart`, {
-      headers: {
-        Authorization: `Basic ${localStorage.getItem("authorization_token")}`,
-      },
+      headers: getBasicAuthHeaders(),
     });
     return res.data;
   });
@@ -31,9 +30,7 @@ export function useInvalidateCart() {
 export function useUpsertCart() {
   return useMutation((values: CartItem) =>
     axios.put<CartItem[]>(`${API_PATHS.cart}/profile/cart`, values, {
-      headers: {
-        Authorization: `Basic ${localStorage.getItem("authorization_token")}`,
-      },
+      headers: getBasicAuthHeaders(),
     })
   );
 }
