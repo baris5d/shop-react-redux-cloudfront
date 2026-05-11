@@ -6,7 +6,7 @@ import { ProductServiceStack } from "../lib/product-service-stack";
 
 const app = new cdk.App();
 
-const productServiceStack = new ProductServiceStack(app, "ProductServiceStack", {
+const productServiceStack = new ProductServiceStack(app, "MyStoreAppStack", {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION || "eu-west-1",

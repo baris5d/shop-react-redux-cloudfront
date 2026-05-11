@@ -25,7 +25,6 @@ export class ProductServiceStack extends cdk.Stack {
 
     // Create S3 bucket for hosting the React app
     this.bucket = new s3.Bucket(this, "ProductServiceBucket", {
-      bucketName: `epm-s3-frontend-${this.account}-${this.region}`,
       removalPolicy: cdk.RemovalPolicy.DESTROY, // Allows bucket deletion with `cdk destroy`
       autoDeleteObjects: true, // Automatically delete objects when bucket is destroyed
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,

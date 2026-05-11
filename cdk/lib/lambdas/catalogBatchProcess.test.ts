@@ -40,7 +40,8 @@ describe("catalogBatchProcess", () => {
       ...originalEnv,
       PRODUCTS_TABLE_NAME: "products-table",
       STOCK_TABLE_NAME: "stock-table",
-      CREATE_PRODUCT_TOPIC_ARN: "arn:aws:sns:eu-west-1:123456789012:create-product-topic",
+      CREATE_PRODUCT_TOPIC_ARN:
+        "arn:aws:sns:eu-west-1:123456789012:create-product-topic",
     };
   });
 

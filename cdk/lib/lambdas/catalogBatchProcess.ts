@@ -39,7 +39,12 @@ export async function catalogBatchProcess(event: SQSEvent): Promise<void> {
   const topicArn = requireEnv("CREATE_PRODUCT_TOPIC_ARN");
   const doc = getDocumentClient();
 
-  const createdProducts: Array<{ id: string; title: string; price: number; count: number }> = [];
+  const createdProducts: Array<{
+    id: string;
+    title: string;
+    price: number;
+    count: number;
+  }> = [];
 
   for (const sqsRecord of event.Records) {
     const payload = parseRecord(sqsRecord);
